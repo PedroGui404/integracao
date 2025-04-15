@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Indicadores</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Ícones (usando Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- shadcn-like styles -->
+    <style>
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 222.2 84% 4.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 222.2 84% 4.9%;
+            --popover: 0 0% 100%;
+            --popover-foreground: 222.2 84% 4.9%;
+            --primary: 221.2 83.2% 53.3%;
+            --primary-foreground: 210 40% 98%;
+            --secondary: 210 40% 96.1%;
+            --secondary-foreground: 222.2 47.4% 11.2%;
+            --muted: 210 40% 96.1%;
+            --muted-foreground: 215.4 16.3% 46.9%;
+            --accent: 210 40% 96.1%;
+            --accent-foreground: 222.2 47.4% 11.2%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 214.3 31.8% 91.4%;
+            --input: 214.3 31.8% 91.4%;
+            --ring: 221.2 83.2% 53.3%;
+            --radius: 0.5rem;
+        }
+
+        .dark {
+            --background: 222.2 84% 4.9%;
+            --foreground: 210 40% 98%;
+            --card: 222.2 84% 4.9%;
+            --card-foreground: 210 40% 98%;
+            --popover: 222.2 84% 4.9%;
+            --popover-foreground: 210 40% 98%;
+            --primary: 217.2 91.2% 59.8%;
+            --primary-foreground: 222.2 47.4% 11.2%;
+            --secondary: 217.2 32.6% 17.5%;
+            --secondary-foreground: 210 40% 98%;
+            --muted: 217.2 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --accent: 217.2 32.6% 17.5%;
+            --accent-foreground: 210 40% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 217.2 32.6% 17.5%;
+            --input: 217.2 32.6% 17.5%;
+            --ring: 224.3 76.3% 48%;
+        }
+
+        * {
+            border-color: hsl(var(--border));
+        }
+
+        body {
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+
+        .active-view {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+
+        .table-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: hsl(var(--card));
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        th {
+            background-color: hsl(var(--accent));
+            position: sticky;
+            top: 0;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: hsl(var(--accent));
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+    <div id="app" class="container mx-auto">
+        <!-- Tela inicial com cards -->
+        <div id="home-screen">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-bold">Indicadores de Vendas</h1>
+                <button id="view-data-button" class="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md">
+                    <i data-lucide="database"></i> Visualizar Dados
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Cards serão inseridos aqui via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Tela de detalhes (inicialmente oculta) -->
+        <div id="detail-screen" class="hidden flex flex-col lg:flex-row gap-6">
+            <div class="lg:w-1/3">
+                <div class="bg-card rounded-lg border p-6 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <button id="back-button" class="text-primary flex items-center gap-2">
+                            <i data-lucide="arrow-left"></i> Voltar
+                        </button>
+                    </div>
+                    <h2 id="detail-title" class="text-2xl font-bold mb-2"></h2>
+                    <p id="detail-description" class="text-muted-foreground mb-4"></p>
+                </div>
+            </div>
+
+            <div class="lg:w-2/3">
+                <div class="bg-card rounded-lg border p-6 shadow-sm">
+                    <div class="flex justify-end gap-4 mb-4">
+                        <button class="view-option active-view" data-view="chart">
+                            <i data-lucide="bar-chart-2"></i>
+                        </button>
+                        <button class="view-option" data-view="calculation">
+                            <i data-lucide="calculator"></i>
+                        </button>
+                        <button class="view-option" data-view="text">
+                            <i data-lucide="file-text"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="chart-view" class="h-80">
+                        <canvas id="indicator-chart"></canvas>
+                    </div>
+                    
+                    <div id="calculation-view" class="hidden h-80 overflow-y-auto p-4 bg-muted rounded-md">
+                        <!-- Cálculo será inserido aqui -->
+                    </div>
+                    
+                    <div id="text-view" class="hidden h-80 overflow-y-auto p-4">
+                        <!-- Texto explicativo será inserido aqui -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para visualizar a tabela de dados -->
+        <div id="data-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="modal-overlay absolute inset-0 bg-black bg-opacity-50"></div>
+            <div class="modal-content relative rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
+                <div class="flex justify-between items-center border-b p-4">
+                    <h3 class="text-xl font-bold">Base de Dados Completa</h3>
+                    <button id="close-modal-button" class="text-muted-foreground hover:text-foreground">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="table-container p-4">
+                    <table id="data-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Produto</th>
+                                <th>Categoria</th>
+                                <th>Loja</th>
+                                <th>Região</th>
+                                <th>Quantidade</th>
+                                <th>Valor Unitário</th>
+                                <th>Valor Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dados serão inseridos aqui via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="border-t p-4 flex justify-end">
+                    <button id="export-csv-button" class="bg-primary text-primary-foreground px-4 py-2 rounded-md flex items-center gap-2">
+                        <i data-lucide="download"></i> Exportar CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar ícones
+        lucide.createIcons();
+
+        // Gerar dados fictícios
+        function generateMockData() {
+            const products = [
+                { name: "Smartphone X", category: "Eletrônicos", basePrice: 2500 },
+                { name: "Notebook Pro", category: "Eletrônicos", basePrice: 4500 },
+                { name: "Tablet Lite", category: "Eletrônicos", basePrice: 1200 },
+                { name: "Fone Bluetooth", category: "Acessórios", basePrice: 350 },
+                { name: "Carregador USB", category: "Acessórios", basePrice: 80 },
+                { name: "Capa Protetora", category: "Acessórios", basePrice: 120 },
+                { name: "Mouse Sem Fio", category: "Periféricos", basePrice: 150 },
+                { name: "Teclado Mecânico", category: "Periféricos", basePrice: 400 },
+                { name: "Monitor 24''", category: "Monitores", basePrice: 900 },
+                { name: "Monitor 27''", category: "Monitores", basePrice: 1500 }
+            ];
+
+            const stores = [
+                { name: "Loja Centro", region: "Sul" },
+                { name: "Loja Shopping", region: "Norte" },
+                { name: "Loja Boulevard", region: "Leste" },
+                { name: "Loja Premium", region: "Oeste" },
+                { name: "Loja Digital", region: "Online" }
+            ];
+
+            const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"];
+            const currentYear = new Date().getFullYear();
+            
+            const salesData = [];
+            
+            // Gerar 200 vendas aleatórias
+            for (let i = 0; i < 200; i++) {
+                const product = products[Math.floor(Math.random() * products.length)];
+                const store = stores[Math.floor(Math.random() * stores.length)];
+                const month = months[Math.floor(Math.random() * months.length)];
+                const day = Math.floor(Math.random() * 28) + 1;
+                const date = `${day.toString().padStart(2, '0')}/${month}/${currentYear}`;
+                
+                const quantity = Math.floor(Math.random() * 5) + 1;
+                // Variação de preço de ±20% do preço base
+                const unitPrice = product.basePrice * (0.8 + Math.random() * 0.4);
+                const totalValue = quantity * unitPrice;
+                
+                salesData.push({
+                    date,
+                    month,
+                    product: product.name,
+                    category: product.category,
+                    store: store.name,
+                    region: store.region,
+                    quantity,
+                    unitPrice,
+                    totalValue
+                });
+            }
+            
+            return salesData;
+        }
+
+        // Dados gerados
+        const salesData = generateMockData();
+        const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"];
+        const products = [...new Set(salesData.map(item => item.product))];
+        const stores = [...new Set(salesData.map(item => item.store))];
+        const categories = [...new Set(salesData.map(item => item.category))];
+
+        // Calcular indicadores com base nos dados
+        function calculateIndicators() {
+            // Vendas em Volume (total de unidades vendidas por mês)
+            const volumeSales = months.map(month => {
+                const monthData = salesData.filter(item => item.month === month);
+                return monthData.reduce((sum, item) => sum + item.quantity, 0);
+            });
+
+            // Vendas em Valor (total em R$ vendidos por mês)
+            const valueSales = months.map(month => {
+                const monthData = salesData.filter(item => item.month === month);
+                return monthData.reduce((sum, item) => sum + item.totalValue, 0);
+            });
+
+            // Preço Médio (valor médio por produto)
+            const averagePrice = products.map(product => {
+                const productSales = salesData.filter(item => item.product === product);
+                return productSales.reduce((sum, item) => sum + item.unitPrice, 0) / productSales.length;
+            });
+
+            // Distribuição Numérica (% de lojas que vendem cada produto)
+            const numericDistribution = products.map(product => {
+                const productStores = [...new Set(salesData
+                    .filter(item => item.product === product)
+                    .map(item => item.store))];
+                return (productStores.length / stores.length) * 100;
+            });
+
+            // Market Share (% de vendas por produto na categoria)
+            const marketShare = {};
+            categories.forEach(category => {
+                const categoryProducts = [...new Set(salesData
+                    .filter(item => item.category === category)
+                    .map(item => item.product))];
+                
+                const categoryTotal = salesData
+                    .filter(item => item.category === category)
+                    .reduce((sum, item) => sum + item.quantity, 0);
+                
+                categoryProducts.forEach(product => {
+                    const productTotal = salesData
+                        .filter(item => item.product === product)
+                        .reduce((sum, item) => sum + item.quantity, 0);
+                    
+                    if (!marketShare[category]) marketShare[category] = {};
+                    marketShare[category][product] = (productTotal / categoryTotal) * 100;
+                });
+            });
+
+            return {
+                volumeSales,
+                valueSales,
+                averagePrice,
+                numericDistribution,
+                marketShare
+            };
+        }
+
+        const indicators = calculateIndicators();
+
+        // Dados para os indicadores
+        const indicatorsData = [
+            {
+                id: 1,
+                title: "Vendas em Volume",
+                description: "Quantidade total de produtos vendidos em unidades.",
+                calculation: "Vendas em Volume = Soma de todas as unidades vendidas no período",
+                example: `Exemplo: Em Jan foram vendidas ${indicators.volumeSales[0]} unidades no total.`,
+                detailedText: "O indicador de Vendas em Volume mede o desempenho de vendas em termos de quantidade física de produtos comercializados. É importante para avaliar a capacidade produtiva e logística, independentemente do valor monetário.",
+                chartData: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Vendas em Volume (unidades)',
+                        data: indicators.volumeSales,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1
+                    }]
+                }
+            },
+            {
+                id: 2,
+                title: "Vendas em Valor",
+                description: "Valor total das vendas em reais (R$).",
+                calculation: "Vendas em Valor = Soma do valor total (quantidade × preço unitário) de todas as vendas no período",
+                example: `Exemplo: Em Jan foram vendidos R$ ${indicators.valueSales[0].toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})} no total.`,
+                detailedText: "O indicador de Vendas em Valor mede o desempenho financeiro das vendas. Mostra o faturamento total, considerando tanto a quantidade vendida quanto o preço dos produtos. É essencial para análise de receita e crescimento financeiro.",
+                chartData: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Vendas em Valor (R$)',
+                        data: indicators.valueSales,
+                        backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }]
+                }
+            },
+            {
+                id: 3,
+                title: "Preço Médio",
+                description: "Valor médio de venda por produto.",
+                calculation: "Preço Médio = Soma dos valores unitários de todas as vendas do produto / Número de vendas do produto",
+                example: `Exemplo: O ${products[0]} teve um preço médio de R$ ${indicators.averagePrice[0].toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}.`,
+                detailedText: "O Preço Médio indica o valor típico pelo qual um produto é vendido, considerando todas as transações. Variações no preço médio podem indicar mudanças na estratégia de precificação, descontos aplicados ou mix de produtos diferentes.",
+                chartData: {
+                    labels: products,
+                    datasets: [{
+                        label: 'Preço Médio (R$)',
+                        data: indicators.averagePrice,
+                        backgroundColor: 'rgba(139, 92, 246, 0.5)',
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        borderWidth: 1
+                    }]
+                }
+            },
+            {
+                id: 4,
+                title: "Distribuição Numérica",
+                description: "Percentual de pontos de venda que comercializam o produto.",
+                calculation: "Distribuição Numérica = (Nº de pontos de venda que têm o produto / Total de pontos de venda) × 100",
+                example: `Exemplo: ${products[0]} está presente em ${Math.round(indicators.numericDistribution[0])}% das lojas (${stores.length} lojas no total).`,
+                detailedText: "A Distribuição Numérica indica a penetração do seu produto no mercado. Mostra em quantos pontos de venda seu produto está disponível em relação ao total. Não considera o volume de vendas em cada ponto.",
+                chartData: {
+                    labels: products,
+                    datasets: [{
+                        label: 'Distribuição Numérica (%)',
+                        data: indicators.numericDistribution,
+                        backgroundColor: 'rgba(245, 158, 11, 0.5)',
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        borderWidth: 1
+                    }]
+                }
+            },
+            {
+                id: 5,
+                title: "Market Share",
+                description: "Participação do produto nas vendas totais do mercado.",
+                calculation: "Market Share = (Vendas do seu produto / Vendas totais da categoria) × 100",
+                example: `Exemplo: Na categoria ${categories[0]}, ${products[0]} tem ${Math.round(indicators.marketShare[categories[0]][products[0]])}% de participação.`,
+                detailedText: "O Market Share (participação de mercado) mostra a relevância da sua marca ou produto no contexto geral do mercado. Pode ser medido em volume (unidades) ou valor (receita). Um market share crescente indica que você está ganhando espaço em relação aos concorrentes.",
+                chartData: {
+                    labels: products,
+                    datasets: categories.map((category, i) => {
+                        const colors = [
+                            'rgba(59, 130, 246, 0.5)',
+                            'rgba(239, 68, 68, 0.5)',
+                            'rgba(16, 185, 129, 0.5)',
+                            'rgba(245, 158, 11, 0.5)'
+                        ];
+                        return {
+                            label: category,
+                            data: products.map(product => indicators.marketShare[category][product] || 0),
+                            backgroundColor: colors[i % colors.length],
+                            borderColor: colors[i % colors.length].replace('0.5', '1'),
+                            borderWidth: 1
+                        };
+                    }).filter(dataset => dataset.data.some(val => val > 0))
+                }
+            }
+        ];
+
+        // Variáveis globais
+        let currentIndicator = null;
+        let chartInstance = null;
+
+        // Função para renderizar os cards na tela inicial
+        function renderCards() {
+            const homeScreen = document.querySelector('#home-screen .grid');
+            homeScreen.innerHTML = '';
+
+            indicatorsData.forEach(indicator => {
+                const card = document.createElement('div');
+                card.className = 'bg-card rounded-lg border p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer';
+                card.dataset.id = indicator.id;
+                
+                card.innerHTML = `
+                    <h3 class="text-xl font-semibold mb-2">${indicator.title}</h3>
+                    <p class="text-muted-foreground">${indicator.description}</p>
+                `;
+
+                card.addEventListener('click', () => showIndicatorDetail(indicator.id));
+                homeScreen.appendChild(card);
+            });
+        }
+
+        // Função para mostrar os detalhes de um indicador
+        function showIndicatorDetail(id) {
+            currentIndicator = indicatorsData.find(ind => ind.id === id);
+            
+            if (!currentIndicator) return;
+
+            // Esconder tela inicial e mostrar tela de detalhes
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('detail-screen').classList.remove('hidden');
+            
+            // Atualizar informações do indicador
+            document.getElementById('detail-title').textContent = currentIndicator.title;
+            document.getElementById('detail-description').textContent = currentIndicator.description;
+            
+            // Atualizar cálculo
+            document.getElementById('calculation-view').innerHTML = `
+                <h4 class="font-semibold mb-2">Cálculo:</h4>
+                <p class="mb-2">${currentIndicator.calculation}</p>
+                <p class="text-sm text-muted-foreground mt-4">${currentIndicator.example}</p>
+                ${currentIndicator.id === 5 ? `
+                <div class="mt-4 p-3 bg-background rounded-md">
+                    <h5 class="font-medium mb-2">Dados da Categoria:</h5>
+                    <ul class="text-sm space-y-1">
+                        ${categories.map(cat => `
+                            <li>${cat}: ${Object.keys(indicators.marketShare[cat] || {}).length} produtos</li>
+                        `).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+            `;
+            
+            // Atualizar texto explicativo
+            document.getElementById('text-view').innerHTML = `
+                <h4 class="font-semibold mb-2">Explicação Detalhada:</h4>
+                <p class="mb-4">${currentIndicator.detailedText}</p>
+                ${currentIndicator.id === 4 ? `
+                <div class="mt-4 p-3 bg-muted rounded-md">
+                    <h5 class="font-medium mb-2">Lojas Disponíveis:</h5>
+                    <ul class="text-sm columns-2 gap-4">
+                        ${stores.map(store => `
+                            <li class="mb-1">${store}</li>
+                        `).join('')}
+                    </ul>
+                </div>
+                ` : ''}
+            `;
+            
+            // Renderizar o gráfico
+            renderChart();
+            
+            // Resetar view para gráfico
+            setActiveView('chart');
+        }
+
+        // Função para renderizar o gráfico
+        function renderChart() {
+            const ctx = document.getElementById('indicator-chart').getContext('2d');
+            
+            // Destruir gráfico anterior se existir
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            
+            // Definir tipo de gráfico baseado no indicador
+            let chartType = 'bar';
+            if ([1, 2].includes(currentIndicator.id)) chartType = 'line'; // Vendas em Volume e Valor como linha
+            
+            chartInstance = new Chart(ctx, {
+                type: chartType,
+                data: currentIndicator.chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        if ([2, 3].includes(currentIndicator.id)) { // Preço Médio e Vendas em Valor
+                                            label += new Intl.NumberFormat('pt-BR', {
+                                                style: 'currency',
+                                                currency: 'BRL'
+                                            }).format(context.parsed.y);
+                                        } else {
+                                            label += context.parsed.y.toLocaleString('pt-BR');
+                                        }
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    if ([2, 3].includes(currentIndicator.id)) { // Preço Médio e Vendas em Valor
+                                        return new Intl.NumberFormat('pt-BR', {
+                                            style: 'currency',
+                                            currency: 'BRL'
+                                        }).format(value);
+                                    }
+                                    return value.toLocaleString('pt-BR');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Função para voltar à tela inicial
+        function backToHome() {
+            document.getElementById('home-screen').classList.remove('hidden');
+            document.getElementById('detail-screen').classList.add('hidden');
+        }
+
+        // Função para definir a visualização ativa (gráfico, cálculo ou texto)
+        function setActiveView(view) {
+            // Remover classe active de todos os botões
+            document.querySelectorAll('.view-option').forEach(btn => {
+                btn.classList.remove('active-view');
+            });
+            
+            // Adicionar classe active ao botão clicado
+            const activeBtn = document.querySelector(`.view-option[data-view="${view}"]`);
+            activeBtn.classList.add('active-view');
+            
+            // Mostrar o conteúdo correspondente
+            document.getElementById('chart-view').classList.add('hidden');
+            document.getElementById('calculation-view').classList.add('hidden');
+            document.getElementById('text-view').classList.add('hidden');
+            
+            document.getElementById(`${view}-view`).classList.remove('hidden');
+        }
+
+        // Função para mostrar a tabela de dados
+        function showDataTable() {
+            const tableBody = document.querySelector('#data-table tbody');
+            tableBody.innerHTML = '';
+            
+            salesData.forEach(sale => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${sale.date}</td>
+                    <td>${sale.product}</td>
+                    <td>${sale.category}</td>
+                    <td>${sale.store}</td>
+                    <td>${sale.region}</td>
+                    <td>${sale.quantity}</td>
+                    <td>${sale.unitPrice.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</td>
+                    <td>${sale.totalValue.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            document.getElementById('data-modal').classList.remove('hidden');
+        }
+
+        // Função para fechar o modal
+        function closeModal() {
+            document.getElementById('data-modal').classList.add('hidden');
+        }
+
+        // Função para exportar os dados como CSV
+        function exportToCSV() {
+            const headers = Object.keys(salesData[0]).join(';');
+            const rows = salesData.map(item => 
+                Object.values(item).map(val => 
+                    typeof val === 'string' ? `"${val}"` : val
+                ).join(';')
+            ).join('\n');
+            
+            const csvContent = `${headers}\n${rows}`;
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'dados_vendas.csv');
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Event Listeners
+        document.getElementById('back-button').addEventListener('click', backToHome);
+        
+        document.querySelectorAll('.view-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const view = btn.dataset.view;
+                setActiveView(view);
+            });
+        });
+
+        document.getElementById('view-data-button').addEventListener('click', showDataTable);
+        document.getElementById('close-modal-button').addEventListener('click', closeModal);
+        document.getElementById('export-csv-button').addEventListener('click', exportToCSV);
+
+        // Fechar modal ao clicar fora
+        document.getElementById('data-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('data-modal')) {
+                closeModal();
+            }
+        });
+
+        // Inicializar o aplicativo
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCards();
+        });
+    </script>
+</body>
+</html>

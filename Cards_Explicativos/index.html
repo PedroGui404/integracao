@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma de Análise de Mercado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: scale(0.95);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .modal.active {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .card {
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .card-image {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+    <div class="container mx-auto max-w-4xl">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2 text-center">Plataforma de Análise de Mercado</h1>
+        <p class="text-gray-600 mb-8 text-center">Visão 360° do mercado com dados de mais de 60 mil pontos de venda</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Linha 1 -->
+            <!-- Card Nielsen -->
+            <div id="nielsen-card" class="bg-white rounded-xl overflow-hidden border border-gray-200 card cursor-pointer">
+                <div class="p-6 flex flex-col items-center">
+                    <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mb-4 overflow-hidden border-4 border-white card-image">
+                        <img src="nielsen.png" alt="Nielsen Logo" class="w-full h-full object-cover">
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Nielsen</h2>
+                    <p class="text-gray-600 text-center mb-4">Análise de Market Share e Distribuição</p>
+                    <div class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium shadow-sm">Clique para saber mais</div>
+                </div>
+            </div>
+            
+            <!-- Card Euromonitor -->
+            <div id="euromonitor-card" class="bg-white rounded-xl overflow-hidden border border-gray-200 card cursor-pointer">
+                <div class="p-6 flex flex-col items-center">
+                    <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mb-4 overflow-hidden border-4 border-white card-image">
+                        <img src="euromonitor.png" alt="Euromonitor Logo" class="w-full h-full object-cover">
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Euromonitor</h2>
+                    <p class="text-gray-600 text-center mb-4">Insights Internacionais e Tendências</p>
+                    <div class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium shadow-sm">Clique para saber mais</div>
+                </div>
+            </div>
+            
+            <!-- Linha 2 -->
+            <!-- Card Scanttech -->
+            <div id="scanttech-card" class="bg-white rounded-xl overflow-hidden border border-gray-200 card cursor-pointer">
+                <div class="p-6 flex flex-col items-center">
+                    <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mb-4 overflow-hidden border-4 border-white card-image">
+                        <img src="scanntech.png" alt="Scanttech Logo" class="w-full h-full object-cover">
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Scanntech</h2>
+                    <p class="text-gray-600 text-center mb-4">Análise de Preços e Market Share</p>
+                    <div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium shadow-sm">Clique para saber mais</div>
+                </div>
+            </div>
+            
+            <!-- Card Horus -->
+            <div id="horus-card" class="bg-white rounded-xl overflow-hidden border border-gray-200 card cursor-pointer">
+                <div class="p-6 flex flex-col items-center">
+                    <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center mb-4 overflow-hidden border-4 border-white card-image">
+                        <img src="horus.png" alt="Horus Logo" class="w-full h-full object-cover">
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Horus</h2>
+                    <p class="text-gray-600 text-center mb-4">Dados de Shopper e PDV</p>
+                    <div class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium shadow-sm">Clique para saber mais</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Nielsen -->
+    <div id="nielsen-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl max-w-md w-full mx-auto overflow-hidden shadow-2xl">
+            <div class="relative">
+                <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-32 flex items-center justify-center">
+                    <div class="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg overflow-hidden">
+                        <img src="nielsen.png" alt="Nielsen Logo" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <button id="close-nielsen" class="absolute top-4 right-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100">
+                    ✕
+                </button>
+            </div>
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Nielsen</h2>
+                <p class="text-gray-600 mb-4">
+                    A Nielsen é líder global em medição de dados e análises de mercado, fornecendo insights confiáveis sobre o 
+                    comportamento do consumidor e desempenho de vendas.
+                </p>
+                <div class="bg-purple-50 p-4 rounded-lg mb-4">
+                    <h3 class="font-semibold text-purple-800 mb-2">Principais indicadores:</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li>Share Volume e Share Valor</li>
+                        <li>Índice de Preço</li>
+                        <li>Distribuição Ponderada e Numérica</li>
+                        <li>Análises granulares por áreas, estados e canais</li>
+                    </ul>
+                </div>
+                <p class="text-gray-600">
+                    Esses dados ajudam empresas a mapear tendências, entender o mercado e tomar decisões estratégicas baseadas em dados.
+                </p>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end">
+                <button id="close-nielsen-btn" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition shadow-md">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Euromonitor -->
+    <div id="euromonitor-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl max-w-md w-full mx-auto overflow-hidden shadow-2xl">
+            <div class="relative">
+                <div class="bg-gradient-to-r from-amber-500 to-amber-600 h-32 flex items-center justify-center">
+                    <div class="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg overflow-hidden">
+                        <img src="euromonitor.png" alt="Euromonitor Logo" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <button id="close-euromonitor" class="absolute top-4 right-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100">
+                    ✕
+                </button>
+            </div>
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Euromonitor International</h2>
+                <p class="text-gray-600 mb-4">
+                    A Euromonitor International é uma referência em pesquisas de mercado global, oferecendo dados estratégicos 
+                    e análises sobre consumidores, indústrias e países.
+                </p>
+                <div class="bg-amber-50 p-4 rounded-lg mb-4">
+                    <h3 class="font-semibold text-amber-800 mb-2">Principais recursos:</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li>Plataforma de Insights internacionais</li>
+                        <li>Tendências de mercado externo</li>
+                        <li>Notícias e pesquisas globais</li>
+                        <li>Dados para mapear tendências futuras</li>
+                    </ul>
+                </div>
+                <p class="text-gray-600">
+                    Esses insights permitem que empresas entendam o mercado global, antecipem mudanças e criem estratégias competitivas 
+                    para expansão internacional.
+                </p>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end">
+                <button id="close-euromonitor-btn" class="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition shadow-md">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Scanntech -->
+    <div id="scanttech-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl max-w-md w-full mx-auto overflow-hidden shadow-2xl">
+            <div class="relative">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-32 flex items-center justify-center">
+                    <div class="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg overflow-hidden">
+                        <img src="scanntech.png" alt="Scanttech Logo" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <button id="close-scanttech" class="absolute top-4 right-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100">
+                    ✕
+                </button>
+            </div>
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Scanttech</h2>
+                <p class="text-gray-600 mb-4">
+                    A Scanntech é especializada em análise de preços, market share e comportamento do consumidor em pontos de venda.
+                </p>
+                <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                    <h3 class="font-semibold text-blue-800 mb-2">Principais indicadores:</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li>Análise de preços e promoções</li>
+                        <li>Variação de crescimento de volume e valor</li>
+                        <li>Market Share por categoria</li>
+                        <li>Distribuição Numérica e Ponderada</li>
+                    </ul>
+                </div>
+                <p class="text-gray-600">
+                    Plataforma abrangente com dados de mais de 60 mil pontos de venda e 35 milhões de notas fiscais coletadas mensalmente.
+                </p>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end">
+                <button id="close-scanttech-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Horus -->
+    <div id="horus-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl max-w-md w-full mx-auto overflow-hidden shadow-2xl">
+            <div class="relative">
+                <div class="bg-gradient-to-r from-red-500 to-red-600 h-32 flex items-center justify-center">
+                    <div class="w-20 h-20 rounded-full bg-white flex items-center justify-center shadow-lg overflow-hidden">
+                        <img src="horus.png" alt="Horus Logo" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <button id="close-horus" class="absolute top-4 right-4 bg-white rounded-full p-2 shadow-md hover:bg-gray-100">
+                    ✕
+                </button>
+            </div>
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Horus</h2>
+                <p class="text-gray-600 mb-4">
+                    A Horus oferece uma visão 360° do mercado e do shopper através de coletas de dados de consumo em pontos de venda.
+                </p>
+                <div class="bg-red-50 p-4 rounded-lg mb-4">
+                    <h3 class="font-semibold text-red-800 mb-2">Principais recursos:</h3>
+                    <ul class="list-disc list-inside text-gray-700 space-y-1">
+                        <li>Análise de comportamento do shopper</li>
+                        <li>Dados de PDV (Ponto de Venda)</li>
+                        <li>Preço, IP (Índice de Preço) e Price Index</li>
+                        <li>Aderência de produtos e categorias</li>
+                    </ul>
+                </div>
+                <p class="text-gray-600">
+                    Solução completa para entender o consumidor final e otimizar estratégias de varejo e trade marketing.
+                </p>
+            </div>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end">
+                <button id="close-horus-btn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-md">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos dos cards
+            const nielsenCard = document.getElementById('nielsen-card');
+            const euromonitorCard = document.getElementById('euromonitor-card');
+            const scanttechCard = document.getElementById('scanttech-card');
+            const horusCard = document.getElementById('horus-card');
+            
+            // Elementos dos modais
+            const nielsenModal = document.getElementById('nielsen-modal');
+            const euromonitorModal = document.getElementById('euromonitor-modal');
+            const scanttechModal = document.getElementById('scanttech-modal');
+            const horusModal = document.getElementById('horus-modal');
+            
+            // Função para abrir modal
+            function openModal(modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            // Função para fechar modal
+            function closeModal(modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+            
+            // Event listeners para abrir modais
+            nielsenCard.addEventListener('click', () => openModal(nielsenModal));
+            euromonitorCard.addEventListener('click', () => openModal(euromonitorModal));
+            scanttechCard.addEventListener('click', () => openModal(scanttechModal));
+            horusCard.addEventListener('click', () => openModal(horusModal));
+            
+            // Event listeners para fechar modais
+            document.getElementById('close-nielsen').addEventListener('click', () => closeModal(nielsenModal));
+            document.getElementById('close-nielsen-btn').addEventListener('click', () => closeModal(nielsenModal));
+            document.getElementById('close-euromonitor').addEventListener('click', () => closeModal(euromonitorModal));
+            document.getElementById('close-euromonitor-btn').addEventListener('click', () => closeModal(euromonitorModal));
+            document.getElementById('close-scanttech').addEventListener('click', () => closeModal(scanttechModal));
+            document.getElementById('close-scanttech-btn').addEventListener('click', () => closeModal(scanttechModal));
+            document.getElementById('close-horus').addEventListener('click', () => closeModal(horusModal));
+            document.getElementById('close-horus-btn').addEventListener('click', () => closeModal(horusModal));
+            
+            // Fechar modal ao clicar fora do conteúdo
+            [nielsenModal, euromonitorModal, scanttechModal, horusModal].forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal);
+                    }
+                });
+            });
+            
+            // Fechar com ESC key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    [nielsenModal, euromonitorModal, scanttechModal, horusModal].forEach(modal => {
+                        if (modal.classList.contains('active')) {
+                            closeModal(modal);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
